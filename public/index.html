@@ -23,6 +23,14 @@ fbq('track', 'PageView');
 <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=911406421368178&ev=PageView&noscript=1"/></noscript>
 <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=4267435563472349&ev=PageView&noscript=1"/></noscript>
 
+<!-- Supabase client (shared CRM backend — same project as Revenue Board) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  // Anon key is browser-safe by design; row-level security protects the data.
+  window.PCS_SUPABASE_URL = 'https://gcrzmiwgjvuujffbqjbq.supabase.co';
+  window.PCS_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdjcnptaXdnanZ1dWpmZmJxamJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4MjQyODYsImV4cCI6MjA5NzQwMDI4Nn0.6Rol3Pxmh8kC_bvr5XkWa3k5s0gRcK9jfLKYmCHM1Ns';
+</script>
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
 
@@ -1045,63 +1053,66 @@ fbq('track', 'PageView');
       });
     }
 
-    // ══════════ GOHIGHLEVEL INBOUND WEBHOOK ══════════
-    // SETUP INSTRUCTIONS:
-    // 1. In GHL → Automation → Workflows → Create Workflow
-    // 2. Add Trigger → Select "Inbound Webhook"
-    // 3. Copy the Webhook URL that GHL generates
-    // 4. Paste it below replacing YOUR_GHL_WEBHOOK_URL
-    // 5. Send a test submission, then go back to GHL and
-    //    click "Test Trigger" to map the fields
-    // 6. Add workflow actions (assign to pipeline, send SMS,
-    //    notify team, etc.)
-    //
-    // The payload below matches GHL's required format:
-    // - email and phone are required for contact creation
-    // - customData fields will map to GHL custom fields
-
-    var GHL_WEBHOOK_URL = 'YOUR_GHL_WEBHOOK_URL';
-
-    var ghlPayload = {
-      firstName: formData.firstName,
-      lastName: formData.lastName,
+    // ══════════ STORE LEAD IN SHARED CRM (Supabase) ══════════
+    // Leads land in public.leads (same project as Revenue Board).
+    // Public can INSERT (RLS); only admin/manager can read via /admin.
+    var leadRow = {
+      type: 'private-lending',
+      first_name: formData.firstName,
+      last_name: formData.lastName,
       phone: formData.phone,
       email: formData.email,
-      source: 'PCS Private Lending Landing Page',
-      tags: ['private-lending-lead', 'real-estate'],
-      customData: {
-        loanType: formData.loanType,
-        hasPropertyIdentified: formData.hasProperty,
-        propertyType: formData.propertyType,
-        purchasePrice: formData.purchasePrice,
-        creditScore: formData.creditScore,
-        submittedAt: formData.submittedAt
-      }
+      loan_type: formData.loanType,
+      has_property: formData.hasProperty,
+      property_type: formData.propertyType,
+      purchase_price: formData.purchasePrice,
+      credit_score: formData.creditScore,
+      consent: true,
+      source: location.hostname || 'pcs-private-lending',
+      raw: formData
     };
 
-    if (GHL_WEBHOOK_URL !== 'YOUR_GHL_WEBHOOK_URL') {
-      fetch(GHL_WEBHOOK_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(ghlPayload)
-      })
-      .then(function(response) {
-        console.log('GHL webhook response:', response.status);
-      })
-      .catch(function(error) {
-        console.error('GHL webhook error:', error);
-      });
-    } else {
-      console.warn('⚠️ GHL Webhook URL not configured yet. Replace YOUR_GHL_WEBHOOK_URL with your actual GHL Inbound Webhook URL.');
-    }
-
-    setTimeout(function() {
+    function finish() {
       document.getElementById('formView').style.display = 'none';
       document.getElementById('successScreen').classList.add('show');
       document.getElementById('progressBar').style.width = '100%';
       document.getElementById('stepPercent').textContent = '100%';
       document.getElementById('stepLabel').textContent = 'Complete!';
-    }, 1200);
+    }
+
+    // Fallback so a lead is NEVER silently lost if storage fails.
+    function emailFallback() {
+      try {
+        var subj = encodeURIComponent('New Private Lending Lead: ' + formData.firstName + ' ' + formData.lastName);
+        var body = encodeURIComponent(JSON.stringify(formData, null, 2));
+        window.location.href = 'mailto:fivestoneinvestments@gmail.com?subject=' + subj + '&body=' + body;
+      } catch (e) { /* no-op */ }
+    }
+
+    var saved = false;
+    try {
+      if (window.supabase && window.PCS_SUPABASE_URL) {
+        var sb = window.supabase.createClient(window.PCS_SUPABASE_URL, window.PCS_SUPABASE_ANON_KEY);
+        sb.from('leads').insert(leadRow).then(function(res) {
+          if (res && res.error) {
+            console.error('Supabase insert error:', res.error);
+            emailFallback();
+          } else {
+            saved = true;
+            console.log('Lead stored in CRM.');
+          }
+          finish();
+        });
+      } else {
+        console.warn('Supabase client not loaded — using email fallback.');
+        emailFallback();
+        setTimeout(finish, 800);
+      }
+    } catch (err) {
+      console.error('Lead submit failed:', err);
+      emailFallback();
+      setTimeout(finish, 800);
+    }
   }
 
   // ═══════════════════ UTILITIES ═══════════════════

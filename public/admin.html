@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leads Admin | PCS Private Lending</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  window.PCS_SUPABASE_URL = 'https://gcrzmiwgjvuujffbqjbq.supabase.co';
+  window.PCS_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdjcnptaXdnanZ1dWpmZmJxamJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4MjQyODYsImV4cCI6MjA5NzQwMDI4Nn0.6Rol3Pxmh8kC_bvr5XkWa3k5s0gRcK9jfLKYmCHM1Ns';
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --pcs-black:#000;--pcs-dark:#060B15;--pcs-navy:#0D1F3C;--pcs-blue:#1B3D7A;
+    --pcs-blue-mid:#2E5BA8;--pcs-blue-light:#4A80D4;--pcs-blue-glow:#5E9BF0;
+    --pcs-white:#fff;--pcs-off-white:#E8EDF5;--pcs-gray:#8896AB;--pcs-border:#1A2744;
+    --pcs-card-bg:#0A1628;--pcs-input-bg:#0D1B30;--pcs-success:#16A34A;--pcs-error:#EF4444;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'DM Sans',sans-serif;background:var(--pcs-black);color:var(--pcs-white);-webkit-font-smoothing:antialiased;min-height:100vh;}
+  a{color:var(--pcs-blue-light);}
+  .wrap{max-width:1200px;margin:0 auto;padding:28px 20px 60px;}
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:24px;flex-wrap:wrap;}
+  .brand{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;}
+  .brand span{color:var(--pcs-blue-light);}
+  .muted{color:var(--pcs-gray);font-size:13px;}
+  .btn{font-family:inherit;font-size:14px;font-weight:600;border:none;border-radius:10px;padding:11px 18px;cursor:pointer;transition:.2s;color:#fff;}
+  .btn-primary{background:linear-gradient(135deg,var(--pcs-blue-mid),var(--pcs-blue));box-shadow:0 4px 18px rgba(46,91,168,.3);}
+  .btn-primary:hover{filter:brightness(1.1);}
+  .btn-ghost{background:transparent;border:1.5px solid var(--pcs-border);color:var(--pcs-off-white);}
+  .btn-ghost:hover{border-color:var(--pcs-blue-mid);}
+  .card{background:var(--pcs-card-bg);border:1px solid var(--pcs-border);border-radius:16px;padding:28px;}
+
+  /* Login */
+  .login-shell{display:flex;align-items:center;justify-content:center;min-height:80vh;}
+  .login-card{width:100%;max-width:380px;text-align:center;}
+  .login-card h1{font-family:'Playfair Display',serif;font-size:26px;margin-bottom:6px;}
+  .login-card p{color:var(--pcs-gray);font-size:14px;margin-bottom:24px;}
+  .gbtn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;background:#fff;color:#111;font-weight:600;border:none;border-radius:10px;padding:12px;cursor:pointer;font-family:inherit;font-size:15px;margin-bottom:16px;}
+  .divider{display:flex;align-items:center;gap:12px;color:var(--pcs-gray);font-size:12px;margin:8px 0 16px;}
+  .divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--pcs-border);}
+  input[type=email]{width:100%;padding:12px 14px;border:1.5px solid var(--pcs-border);border-radius:10px;background:var(--pcs-input-bg);color:#fff;font-family:inherit;font-size:15px;outline:none;margin-bottom:12px;}
+  input[type=email]:focus{border-color:var(--pcs-blue-mid);}
+  .note{font-size:12px;color:var(--pcs-gray);margin-top:14px;}
+
+  /* Dashboard */
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:22px;}
+  .stat{background:var(--pcs-card-bg);border:1px solid var(--pcs-border);border-radius:14px;padding:18px 20px;}
+  .stat .n{font-family:'Playfair Display',serif;font-size:30px;font-weight:700;background:linear-gradient(135deg,var(--pcs-blue-mid),var(--pcs-blue-glow));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+  .stat .l{font-size:12px;color:var(--pcs-gray);margin-top:2px;text-transform:uppercase;letter-spacing:.5px;}
+  .controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px;}
+  .controls input,.controls select{padding:10px 13px;border:1.5px solid var(--pcs-border);border-radius:9px;background:var(--pcs-input-bg);color:#fff;font-family:inherit;font-size:14px;outline:none;}
+  .controls input{flex:1;min-width:180px;}
+  .controls input:focus,.controls select:focus{border-color:var(--pcs-blue-mid);}
+  .table-wrap{overflow-x:auto;border:1px solid var(--pcs-border);border-radius:14px;}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;}
+  th{text-align:left;padding:13px 14px;background:var(--pcs-navy);color:var(--pcs-off-white);font-weight:600;white-space:nowrap;position:sticky;top:0;}
+  td{padding:12px 14px;border-top:1px solid var(--pcs-border);color:var(--pcs-off-white);white-space:nowrap;}
+  tr:hover td{background:rgba(46,91,168,.07);}
+  .pill{display:inline-block;padding:3px 10px;border-radius:100px;font-size:11.5px;font-weight:600;background:rgba(46,91,168,.18);color:var(--pcs-blue-light);border:1px solid rgba(46,91,168,.3);}
+  .empty{text-align:center;padding:50px 20px;color:var(--pcs-gray);}
+  .err{color:var(--pcs-error);font-size:13px;margin-top:10px;}
+  .hidden{display:none!important;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- LOGIN -->
+  <div id="loginView" class="login-shell">
+    <div class="card login-card">
+      <h1>PCS <span style="color:var(--pcs-blue-light)">Lending</span> Admin</h1>
+      <p>Sign in to view and manage leads.</p>
+      <button class="gbtn" onclick="loginGoogle()">
+        <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.4 29.3 35.5 24 35.5c-6.3 0-11.5-5.2-11.5-11.5S17.7 12.5 24 12.5c2.9 0 5.5 1.1 7.5 2.9l5.7-5.7C33.6 6.2 29.1 4.5 24 4.5 13.2 4.5 4.5 13.2 4.5 24S13.2 43.5 24 43.5c10 0 19-7.3 19-19.5 0-1.3-.1-2.3-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 16 19 12.5 24 12.5c2.9 0 5.5 1.1 7.5 2.9l5.7-5.7C33.6 6.2 29.1 4.5 24 4.5c-7.5 0-14 4.3-17.7 10.2z"/><path fill="#4CAF50" d="M24 43.5c5.2 0 9.6-1.7 12.9-4.6l-6-5.1C29 35 26.6 35.5 24 35.5c-5.3 0-9.7-3.1-11.3-7.5l-6.5 5C9.8 39.2 16.3 43.5 24 43.5z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.1-4.1 5.4l6 5.1C39.9 36 43.5 30.8 43.5 24c0-1.3-.1-2.3-.4-3.5z"/></svg>
+        Continue with Google
+      </button>
+      <div class="divider">or email link</div>
+      <input type="email" id="emailIn" placeholder="you@email.com" autocomplete="email">
+      <button class="btn btn-primary" style="width:100%" onclick="loginEmail()">Send magic link</button>
+      <div id="loginMsg" class="note"></div>
+    </div>
+  </div>
+
+  <!-- NO ACCESS -->
+  <div id="denyView" class="login-shell hidden">
+    <div class="card login-card">
+      <h1>No access</h1>
+      <p id="denyMsg">This account isn't an admin or manager yet.</p>
+      <button class="btn btn-ghost" style="width:100%" onclick="logout()">Sign out</button>
+    </div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="dashView" class="hidden">
+    <div class="topbar">
+      <div>
+        <div class="brand">PCS <span>Lending</span> — Leads</div>
+        <div class="muted" id="whoami"></div>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-ghost" onclick="exportCSV()">Export CSV</button>
+        <button class="btn btn-ghost" onclick="loadLeads()">Refresh</button>
+        <button class="btn btn-ghost" onclick="logout()">Sign out</button>
+      </div>
+    </div>
+
+    <div class="stats" id="stats"></div>
+
+    <div class="controls">
+      <input id="search" placeholder="Search name, phone, email…" oninput="render()">
+      <select id="fType" onchange="render()"><option value="">All types</option></select>
+      <select id="fStatus" onchange="render()">
+        <option value="">All statuses</option>
+        <option value="new">New</option>
+        <option value="contacted">Contacted</option>
+        <option value="qualified">Qualified</option>
+        <option value="funded">Funded</option>
+        <option value="dead">Dead</option>
+      </select>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Date</th><th>Name</th><th>Phone</th><th>Email</th>
+          <th>Loan Type</th><th>Property</th><th>Has Prop.</th>
+          <th>Price</th><th>Credit</th><th>Status</th>
+        </tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+    <div id="emptyState" class="empty hidden">No leads match your filters yet.</div>
+    <div id="dashErr" class="err"></div>
+  </div>
+
+</div>
+
+<script>
+  var sb = window.supabase.createClient(window.PCS_SUPABASE_URL, window.PCS_SUPABASE_ANON_KEY);
+  var ALL = [];
+  var ME = null;
+
+  function show(id){ ['loginView','denyView','dashView'].forEach(function(v){ document.getElementById(v).classList.toggle('hidden', v!==id); }); }
+
+  // ---- Auth ----
+  function loginGoogle(){
+    sb.auth.signInWithOAuth({ provider:'google', options:{ redirectTo: location.origin + location.pathname } });
+  }
+  function loginEmail(){
+    var email = document.getElementById('emailIn').value.trim();
+    if(!email){ return; }
+    sb.auth.signInWithOtp({ email:email, options:{ emailRedirectTo: location.origin + location.pathname } })
+      .then(function(res){
+        document.getElementById('loginMsg').textContent = res.error ? ('Error: '+res.error.message) : 'Check your email for the sign-in link.';
+      });
+  }
+  function logout(){ sb.auth.signOut().then(function(){ location.reload(); }); }
+
+  // ---- Gate by role ----
+  async function init(){
+    var s = await sb.auth.getSession();
+    var session = s.data && s.data.session;
+    if(!session){ show('loginView'); return; }
+
+    var uid = session.user.id;
+    var prof = await sb.from('profiles').select('role,email').eq('id', uid).maybeSingle();
+    var role = prof.data && prof.data.role;
+    ME = { email: session.user.email, role: role };
+
+    if(role === 'admin' || role === 'manager'){
+      document.getElementById('whoami').textContent = ME.email + ' · ' + role;
+      show('dashView');
+      loadLeads();
+    } else {
+      document.getElementById('denyMsg').textContent =
+        'Signed in as ' + (ME.email||'') + '. This account is "' + (role||'staff') + '" — ask an admin to upgrade you.';
+      show('denyView');
+    }
+  }
+
+  // ---- Leads ----
+  async function loadLeads(){
+    document.getElementById('dashErr').textContent = '';
+    var res = await sb.from('leads').select('*').order('created_at', { ascending:false });
+    if(res.error){ document.getElementById('dashErr').textContent = 'Load error: ' + res.error.message; return; }
+    ALL = res.data || [];
+    // populate type filter
+    var types = Array.from(new Set(ALL.map(function(l){return l.type||'';}).filter(Boolean)));
+    var sel = document.getElementById('fType');
+    sel.innerHTML = '<option value="">All types</option>' + types.map(function(t){return '<option value="'+t+'">'+t+'</option>';}).join('');
+    renderStats();
+    render();
+  }
+
+  function renderStats(){
+    var total = ALL.length;
+    var today = ALL.filter(function(l){ return (l.created_at||'').slice(0,10) === new Date().toISOString().slice(0,10); }).length;
+    var nu = ALL.filter(function(l){ return (l.status||'new')==='new'; }).length;
+    document.getElementById('stats').innerHTML =
+      stat(total,'Total leads') + stat(today,'Today') + stat(nu,'New / untouched');
+  }
+  function stat(n,l){ return '<div class="stat"><div class="n">'+n+'</div><div class="l">'+l+'</div></div>'; }
+
+  function esc(s){ return (s==null?'':String(s)).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+
+  function filtered(){
+    var q = document.getElementById('search').value.toLowerCase().trim();
+    var ft = document.getElementById('fType').value;
+    var fs = document.getElementById('fStatus').value;
+    return ALL.filter(function(l){
+      if(ft && l.type!==ft) return false;
+      if(fs && (l.status||'new')!==fs) return false;
+      if(q){
+        var hay = [l.first_name,l.last_name,l.phone,l.email,l.loan_type].join(' ').toLowerCase();
+        if(hay.indexOf(q)<0) return false;
+      }
+      return true;
+    });
+  }
+
+  function render(){
+    var rows = filtered();
+    document.getElementById('emptyState').classList.toggle('hidden', rows.length>0);
+    var statuses = ['new','contacted','qualified','funded','dead'];
+    document.getElementById('rows').innerHTML = rows.map(function(l){
+      var name = esc((l.first_name||'')+' '+(l.last_name||'')).trim() || '—';
+      var d = l.created_at ? new Date(l.created_at).toLocaleDateString(undefined,{month:'short',day:'numeric'}) + ' ' +
+              new Date(l.created_at).toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'}) : '';
+      var opts = statuses.map(function(s){ return '<option value="'+s+'"'+((l.status||'new')===s?' selected':'')+'>'+s+'</option>'; }).join('');
+      return '<tr>'+
+        '<td>'+esc(d)+'</td>'+
+        '<td>'+name+'</td>'+
+        '<td>'+esc(l.phone)+'</td>'+
+        '<td>'+esc(l.email)+'</td>'+
+        '<td><span class="pill">'+esc(l.loan_type||'—')+'</span></td>'+
+        '<td>'+esc(l.property_type||'—')+'</td>'+
+        '<td>'+esc(l.has_property||'—')+'</td>'+
+        '<td>'+esc(l.purchase_price||'—')+'</td>'+
+        '<td>'+esc(l.credit_score||'—')+'</td>'+
+        '<td><select onchange="setStatus(\''+l.id+'\',this.value)" style="background:var(--pcs-input-bg);color:#fff;border:1px solid var(--pcs-border);border-radius:7px;padding:5px 8px;font-family:inherit;font-size:12.5px;">'+opts+'</select></td>'+
+      '</tr>';
+    }).join('');
+  }
+
+  async function setStatus(id, status){
+    var res = await sb.from('leads').update({ status:status }).eq('id', id);
+    if(res.error){ document.getElementById('dashErr').textContent = 'Update failed: ' + res.error.message; return; }
+    var l = ALL.find(function(x){return x.id===id;}); if(l) l.status = status;
+    renderStats();
+  }
+
+  function exportCSV(){
+    var rows = filtered();
+    var cols = ['created_at','type','first_name','last_name','phone','email','loan_type','has_property','property_type','purchase_price','credit_score','status','source'];
+    var csv = [cols.join(',')].concat(rows.map(function(l){
+      return cols.map(function(c){ var v=l[c]==null?'':String(l[c]); return '"'+v.replace(/"/g,'""')+'"'; }).join(',');
+    })).join('\n');
+    var blob = new Blob([csv], {type:'text/csv'});
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'pcs-leads-' + new Date().toISOString().slice(0,10) + '.csv';
+    a.click();
+  }
+
+  // React to auth changes (magic link / oauth return)
+  sb.auth.onAuthStateChange(function(){ init(); });
+  init();
+</script>
+</body>
+</html>
