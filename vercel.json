@@ -1,8 +1,11 @@
 {
-  "buildCommand": null,
   "outputDirectory": "public",
-  "framework": null,
   "rewrites": [
-    { "source": "/admin", "destination": "/admin.html" }
+    { "source": "/admin", "destination": "/admin.html" },
+    { "source": "/refer", "destination": "/refer.html" }
+  ],
+  "headers": [
+    { "source": "/", "headers": [{ "key": "Cache-Control", "value": "no-cache, must-revalidate" }] },
+    { "source": "/(.*).html", "headers": [{ "key": "Cache-Control", "value": "no-cache, must-revalidate" }] }
   ]
 }
