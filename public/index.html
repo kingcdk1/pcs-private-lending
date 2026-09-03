@@ -136,7 +136,7 @@ fbq('init','911406421368178');fbq('init','4267435563472349');fbq('track','PageVi
   .s3 p{color:var(--gray);font-size:14.5px}
 
   /* loan grid */
-  .lg{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+  .lg{display:grid;grid-template-columns:repeat(auto-fit,minmax(205px,1fr));gap:18px}
   .lc{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:26px 22px;transition:.2s}
   .lc:hover{border-color:var(--blue-mid);transform:translateY(-3px)}
   .lc .ic{width:46px;height:46px;border-radius:12px;background:rgba(46,91,168,.14);display:flex;align-items:center;justify-content:center;margin-bottom:16px}
@@ -190,7 +190,7 @@ fbq('init','911406421368178');fbq('init','4267435563472349');fbq('track','PageVi
   <div>
     <div class="badge">Now Funding in All 50 States</div>
     <h1>Get Your Investment Property <span class="em">Funded — Fast.</span></h1>
-    <p class="sub">Fix &amp; flip, ground-up construction, DSCR rentals, and multifamily loans for real estate investors — pre-qualify in about 60 seconds.</p>
+    <p class="sub">Fix &amp; flip, construction, DSCR rentals, and multifamily — plus business loans &amp; lines of credit. Pre-qualify in about 60 seconds.</p>
     <div class="norisk">
       <svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg>
       No obligation · soft credit check only — checking your options won't affect your score.
@@ -228,8 +228,10 @@ fbq('init','911406421368178');fbq('init','4267435563472349');fbq('track','PageVi
             <label class="rc"><input type="radio" name="loanType" value="Ground-Up Construction / New Build"><div class="face"><span class="dot"></span>Ground-Up Construction / New Build</div></label>
             <label class="rc"><input type="radio" name="loanType" value="DSCR / 30-Year Rental"><div class="face"><span class="dot"></span>DSCR / 30-Year Rental</div></label>
             <label class="rc"><input type="radio" name="loanType" value="Multifamily"><div class="face"><span class="dot"></span>Multifamily (5+ units)</div></label>
+            <label class="rc"><input type="radio" name="loanType" value="Business Loan / Line of Credit"><div class="face"><span class="dot"></span>Business Loan / Line of Credit</div></label>
           </div>
         </div>
+        <div id="reOnly">
         <div class="field"><label>Property identified or under contract? <span class="req">*</span></label>
           <div class="cards" id="hasProperty">
             <label class="rc"><input type="radio" name="hasProperty" value="Yes"><div class="face"><span class="dot"></span>Yes</div></label>
@@ -243,11 +245,12 @@ fbq('init','911406421368178');fbq('init','4267435563472349');fbq('track','PageVi
             <label class="rc"><input type="radio" name="propertyType" value="5+ Units"><div class="face"><span class="dot"></span>5+ Units</div></label>
           </div>
         </div>
+        </div>
         <div class="btns"><button class="btn btn-back" onclick="prev(2)">← Back</button><button class="btn btn-primary" onclick="next(2)">Continue →</button></div>
       </div>
 
       <div class="step" id="s3">
-        <div class="field"><label>Purchase Price / As-Is Value <span class="req">*</span></label><input id="purchasePrice" placeholder="$ Enter amount" oninput="money(this)"><div class="err">Enter an amount</div></div>
+        <div class="field"><label id="amtLabel">Purchase Price / As-Is Value <span class="req">*</span></label><input id="purchasePrice" placeholder="$ Enter amount" oninput="money(this)"><div class="err">Enter an amount</div></div>
         <div class="field"><label>Estimated credit score <span class="req">*</span></label>
           <div class="cards" id="creditScore">
             <label class="rc"><input type="radio" name="creditScore" value="500+"><div class="face"><span class="dot"></span>500+</div></label>
@@ -296,6 +299,7 @@ fbq('init','911406421368178');fbq('init','4267435563472349');fbq('track','PageVi
     <div class="lc"><div class="ic"><svg viewBox="0 0 24 24"><path d="M2 20h20M4 20V8l8-6 8 6v12"/><rect x="9" y="12" width="6" height="8"/></svg></div><h4>New Construction</h4><p>Ground-up financing for single-family builds and new development.</p></div>
     <div class="lc"><div class="ic"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="M2 9h20M8 9v12"/></svg></div><h4>DSCR / 30-Year</h4><p>Long-term rental financing on property cash flow. No personal income docs.</p></div>
     <div class="lc"><div class="ic"><svg viewBox="0 0 24 24"><rect x="1" y="6" width="22" height="15" rx="2"/><path d="M1 10h22M7 6V4a2 2 0 012-2h6a2 2 0 012 2v2"/></svg></div><h4>Multifamily</h4><p>Financing for 5+ unit apartment buildings and multifamily acquisitions.</p></div>
+    <div class="lc"><div class="ic"><svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div><h4>Business Loans &amp; Lines of Credit</h4><p>Working capital and revolving credit lines to fund and grow your business.</p></div>
   </div>
 </div></section>
 
@@ -330,7 +334,10 @@ fbq('init','911406421368178');fbq('init','4267435563472349');fbq('track','PageVi
   function upd(){var p=Math.round(((step-1)/total)*100);document.getElementById('bar').style.width=p+'%';document.getElementById('slabel').textContent='Step '+step+' of '+total;document.getElementById('spct').textContent=p+'%';}
   function showStep(n){document.querySelectorAll('.step').forEach(function(s){s.classList.remove('on')});document.getElementById('s'+n).classList.add('on');step=n;upd();document.getElementById('formCard').scrollIntoView({behavior:'smooth',block:'nearest'});}
   function v1(){var ok=true;[['firstName',function(v){return v.trim().length>0}],['lastName',function(v){return v.trim().length>0}],['phone',function(v){return v.replace(/\D/g,'').length>=10}],['email',function(v){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)}]].forEach(function(f){var el=document.getElementById(f[0]),fld=el.closest('.field');if(!f[1](el.value)){fld.classList.add('bad');ok=false}else fld.classList.remove('bad')});return ok;}
-  function v2(){return document.querySelector('input[name=loanType]:checked')&&document.querySelector('input[name=hasProperty]:checked')&&document.querySelector('input[name=propertyType]:checked');}
+  function isBiz(){var e=document.querySelector('input[name=loanType]:checked');return !!(e&&e.value==='Business Loan / Line of Credit');}
+  function onLoanChange(){var biz=isBiz();var re=document.getElementById('reOnly');if(re)re.style.display=biz?'none':'';var al=document.getElementById('amtLabel');if(al)al.innerHTML=biz?'Amount Requested <span class="req">*</span>':'Purchase Price / As-Is Value <span class="req">*</span>';var pp=document.getElementById('purchasePrice');if(pp)pp.placeholder=biz?'$ Amount requested':'$ Enter amount';}
+  document.querySelectorAll('input[name=loanType]').forEach(function(r){r.addEventListener('change',onLoanChange);});
+  function v2(){if(!document.querySelector('input[name=loanType]:checked'))return false;if(isBiz())return true;return document.querySelector('input[name=hasProperty]:checked')&&document.querySelector('input[name=propertyType]:checked');}
   function v3(){var price=document.getElementById('purchasePrice').value.replace(/\D/g,''),fld=document.getElementById('purchasePrice').closest('.field');if(!price)fld.classList.add('bad');else fld.classList.remove('bad');return price&&document.querySelector('input[name=creditScore]:checked')&&document.getElementById('consent').checked;}
   function next(f){if(f===1&&!v1())return;if(f===2&&!v2())return;showStep(f+1);}
   function prev(f){showStep(f-1);}
